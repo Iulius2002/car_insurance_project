@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from pydantic import field_validator, model_validator
 from decimal import Decimal
+from typing import Literal, Union, Annotated
 
 class OwnerOut(BaseModel):
     id: int
@@ -100,3 +101,20 @@ class ClaimOut(BaseModel):
     description: str
     amount: Decimal
     model_config = ConfigDict(from_attributes=True)
+
+class HistoryPolicyItem(BaseModel):
+    type: Literal["POLICY"] = "POLICY"
+    policy_id: int = Field(serialization_alias="policyId")
+    start_date: date = Field(serialization_alias="startDate")
+    end_date: date = Field(serialization_alias="endDate")
+    provider: str | None = None
+
+
+class HistoryClaimItem(BaseModel):
+    type: Literal["CLAIM"] = "CLAIM"
+    claim_id: int = Field(serialization_alias="claimId")
+    claim_date: date = Field(serialization_alias="claimDate")
+    amount: Decimal
+    description: str
+
+HistoryItem = Annotated[Union[HistoryPolicyItem, HistoryClaimItem], Field(discriminator="type")]
