@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
+    SCHEDULER_ENABLED: bool = False
+    SCHEDULER_TEST_MODE: bool = False  # when True, runs the expiry check even outside the 00:00–01:00 window (for dev)
 
 
 settings = Settings()
