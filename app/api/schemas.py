@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from pydantic import field_validator, model_validator
+from decimal import Decimal
 
 class OwnerOut(BaseModel):
     id: int
@@ -58,3 +59,44 @@ class ValidityOut(BaseModel):
     date: date
     valid: bool
     model_config = ConfigDict(populate_by_name=True)
+
+
+class ClaimCreate(BaseModel):
+    claim_date: date = Field(validation_alias="claimDate")
+    description: str
+    amount: Decimal
+
+    @field_validator("claim_date")
+    @classmethod
+    def _date_in_range(cls, v: date):
+        if v.year < 1900 or v.year > 2100:
+            raise ValueError("Date must be between 1900 and 2100")
+        return v
+
+    @field_validator("description")
+    @classmethod
+    def _desc_not_empty(cls, v: str):
+        if not v or not v.strip():
+            raise ValueError("description must be non-empty")
+        if len(v.strip()) > 1000:
+            raise ValueError("description too long (max 1000)")
+        return v.strip()
+
+    @field_validator("amount")
+    @classmethod
+    def _amount_positive_and_reasonable(cls, v: Decimal):
+        if v is None:
+            raise ValueError("amount is required")
+        if v <= 0:
+            raise ValueError("amount must be > 0")
+        if v > Decimal("1000000"):
+            raise ValueError("amount is too large")
+        return v
+
+class ClaimOut(BaseModel):
+    id: int
+    car_id: int = Field(serialization_alias="carId")
+    claim_date: date = Field(serialization_alias="claimDate")
+    description: str
+    amount: Decimal
+    model_config = ConfigDict(from_attributes=True)
