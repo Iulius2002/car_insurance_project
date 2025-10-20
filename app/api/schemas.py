@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from datetime import date
 from pydantic import field_validator, model_validator
 from decimal import Decimal
@@ -100,7 +100,12 @@ class ClaimOut(BaseModel):
     claim_date: date = Field(serialization_alias="claimDate")
     description: str
     amount: Decimal
+
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("amount")
+    def _amount_to_float(self, v: Decimal):
+        return float(v)
 
 class HistoryPolicyItem(BaseModel):
     type: Literal["POLICY"] = "POLICY"
